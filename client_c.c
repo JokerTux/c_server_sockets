@@ -47,7 +47,7 @@ int file_sz(FILE *f){
 	fseek(f, 0, SEEK_SET);
 	if(size >= MAX_FILE_SIZE){
 		printf("File is to large : %d[B], max : %d[B]\n", size, MAX_FILE_SIZE); 
-		exit(1);
+		return(1);
 	}	
 	return size;
 }
@@ -65,6 +65,17 @@ int main(int argc, char **argv){
 	char s_buffer[BUFFER];
 	char f_f[MAX_FILE_NAME_LEN];
 	char *f_n_s;
+	
+	//memset
+	memset(cli_msg, '\0', 50);
+	memset(answ, '\0', 2);
+	memset(answ_s, '\0', 2);
+	memset(c_sz, '\0', 11);
+	memset(s_buffer, '\0', BUFFER);
+	memset(f_f, '\0', MAX_FILE_NAME_LEN);
+
+
+
 
 	struct sockaddr_in serveraddr;
 	serveraddr.sin_family = AF_INET;
@@ -106,7 +117,9 @@ int main(int argc, char **argv){
 					
 				if(fgets(cli_msg, 48, stdin)== NULL){
 					if(feof(stdin)){
-						exit(1);
+						shutdown(sock, SHUT_RDWR);
+						close(sock);
+						return(1);
 					}
 					else{
 						shutdown(sock, SHUT_RDWR);
@@ -174,6 +187,8 @@ int main(int argc, char **argv){
 					int b = 0, tot = 0;
 					while((b = fread(s_buffer, 1, BUFFER, f)) > 0){
 						if(b == 0){
+							shutdown(sock, SHUT_RDWR);
+							close(sock);
 							handle_error("fread");
 						}
 						size_t b_send = send(sock, s_buffer, b, 0);

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #define PORT 1337
 #define BUFFER 15120
 #define MAX_FILE_NAME_SIZE 120
@@ -26,7 +27,14 @@ int main(){
 	char file_name[50];
 	ssize_t f_n = 0;
 	char path[10] = "./uploads/"; 
-	
+
+
+	//LINUX OS only. 
+	struct stat st = {0};	
+	if(stat(path, &st) == -1){
+		mkdir(path, 0700);
+	}
+
 	struct sockaddr_in localaddr, remoteaddr;
 	localaddr.sin_family = AF_INET;
 	localaddr.sin_addr.s_addr = inet_addr("0.0.0.0");
@@ -62,8 +70,7 @@ int main(){
 			handle_error("accept");
 		}
 		
-		// answ_i is an string type, so it needs to be in quotes !! ITS NOT AN INT !!
-		opt = recv(sock_r, answ_i, BUFFER, 0);
+		opt = recv(sock_r, answ_i, 2, 0);
 	 	//scanf("%1s", answ_i);
 		//strncat(P_answ_i, answ_i, 1);
 		answ_int = answ_i[0] - '0';
@@ -93,12 +100,15 @@ int main(){
 				f_n = recv(sock_r, file_name, 50, 0);
 				ssize_t l_file_path = (strlen(path) + strlen(file_name));
 				char file_path[l_file_path];
-				printf("file_name = %ld, path = %ld, l_file_path = %ld\n", strlen(file_name), strlen(path), l_file_path);
+				//printf("file_name = %ld, path = %ld, l_file_path = %ld\n", strlen(file_name), strlen(path), l_file_path);
 				memset(file_path, '\0', l_file_path);
 				strcpy(file_path, path);
 				strcat(file_path, file_name);
 				if(strlen(file_name) == 0){
 					memset(file_path, '\0', l_file_path);
+					break;
+				}
+				if(l_file_path >= MAX_FILE_NAME_SIZE){
 					break;
 				}
 
@@ -146,3 +156,4 @@ int main(){
 	close(sock);
 	return 0;
 }
+// Verify the input file name.
