@@ -17,7 +17,6 @@
 #define BUFFER 15120
 #define MAX_FILE_SIZE 2147483640
 #define MAX_FILE_NAME_LEN 120
-
 #define handle_error(msg) \
 	do {perror(msg); exit(EXIT_FAILURE); } while (0)
 
@@ -133,7 +132,6 @@ int main(int argc, char **argv){
 						shutdown(sock, SHUT_RDWR);
 						close(sock);
 	 					handle_error("stderr, Input too long");
-						//exit(1);
 					}
 				}	
 				else{
@@ -159,8 +157,7 @@ int main(int argc, char **argv){
 					close(sock);
 					handle_error("send file buffer");
 				}
-				//int w8 = 1;		
-				//wait(&w8);	
+				
 				printf("File path to file :");
 				scanf("%s", f_f);					
 				if(strlen(f_f) >= MAX_FILE_NAME_LEN){
@@ -179,6 +176,11 @@ int main(int argc, char **argv){
 				//basename works only on linux systems.
 				char *P_file_name = basename(f_f);
 				ssize_t f_n_b = send(sock, P_file_name, strlen(P_file_name), 0);
+				if(f_n_b == -1){
+					shutdown(sock, SHUT_RDWR);
+					close(sock);
+					handle_error("send file name");
+				}
 				printf("%ld\n", strlen(P_file_name));
 				//printf("%s\n", P_file_name);
 				sleep(0.2);// otherwise filename buffer will append some of the first bytes from the file buffer.
@@ -214,12 +216,17 @@ int main(int argc, char **argv){
 					close(sock);
 					handle_error("send close server");
 				}
+				sleep(0.2);
+				shutdown(sock, SHUT_RDWR);
+				close(sock);
 				break;
 		}
 					
 	
         }	
-	shutdown(sock, SHUT_RDWR);
-	close(sock);
+	if(sock){
+		shutdown(sock, SHUT_RDWR);
+		close(sock);
+	}
 	return 0;
 }

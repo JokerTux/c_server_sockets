@@ -156,4 +156,3 @@ int main(){
 	close(sock);
 	return 0;
 }
-// Verify the input file name.
